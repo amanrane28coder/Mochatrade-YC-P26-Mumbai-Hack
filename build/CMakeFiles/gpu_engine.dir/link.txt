@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG -arch arm64 -bundle -Wl,-headerpad_max_install_names -Wl,@/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/nanobind/cmake/darwin-ld-cpython.sym -Wl,-dead_strip -Wl,-x -Wl,-S -o gpu_engine.so CMakeFiles/gpu_engine.dir/src/bindings.cpp.o  libnanobind-static.a libgpu_engine_static.a libnanobind-static.a

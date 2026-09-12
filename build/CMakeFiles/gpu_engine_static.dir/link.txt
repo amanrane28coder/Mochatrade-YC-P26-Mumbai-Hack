@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgpu_engine_static.a CMakeFiles/gpu_engine_static.dir/src/engine.cpp.o
+/usr/bin/ranlib libgpu_engine_static.a

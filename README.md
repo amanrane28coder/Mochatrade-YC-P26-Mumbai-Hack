@@ -205,6 +205,13 @@ This project follows standard C++ and Python practices. Please ensure:
 - NVIDIA for CUDA parallel computing platform
 - Open-source quantitative finance community
 
+## 👥 Team
+
+- **Aman Rane** - Lead Developer
+- **Harsh Gosavi** - Contributor
+- **Anirudh Jatav** - Contributor
+- **Yash Kushwah** - Contributor
+
 ---
 
 **Ready for high-frequency strategy research and development.** Start with the CPU fallback on your current system, then scale to GPU acceleration when you need maximum performance.

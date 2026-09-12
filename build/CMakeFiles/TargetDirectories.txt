@@ -1,9 +1,0 @@
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/nanobind-static.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/gpu_engine_static.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/gpu_engine.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/edit_cache.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/rebuild_cache.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/list_install_components.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/install.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/install/local.dir
-/Users/amanavinashrane/Projects/GPU CUDA/gpu_engine/build/CMakeFiles/install/strip.dir

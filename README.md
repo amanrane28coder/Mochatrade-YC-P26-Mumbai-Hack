@@ -205,7 +205,7 @@ This project follows standard C++ and Python practices. Please ensure:
 - NVIDIA for CUDA parallel computing platform
 - Open-source quantitative finance community
 
-## 👥 Team
+## 👥 Team Void
 
 - Aman Rane
 - Harsh Gosavi

@@ -207,10 +207,7 @@ This project follows standard C++ and Python practices. Please ensure:
 
 ## 👥 Team
 
-- **Aman Rane** - Lead Developer
-- **Harsh Gosavi** - Contributor
-- **Anirudh Jatav** - Contributor
-- **Yash Kushwah** - Contributor
+Team Void
 
 ---
 

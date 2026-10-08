@@ -1,217 +1,174 @@
-# GPU-Accelerated Backtesting Engine
+# MochaTrade GPU-Accelerated Backtesting Engine
 
-An institutional-grade, GPU-accelerated backtesting engine written in modern C++ and CUDA, exposed to Python via low-overhead nanobind bindings. Empowers quants to test high-frequency strategies across millions of ticks in milliseconds.
+A quantitative research and developer platform for exploring trading strategies across historical market data. The project combines a C++20 engine, optional CUDA acceleration, and Python bindings so researchers can work in Python while the engine handles backtest computation.
 
-## 🚀 Overview
+> **Project stage:** Early-stage engineering project. The CPU fallback has been built and exercised on macOS Apple Silicon. GPU validation and performance benchmarking remain open work; estimates below are not measured results.
 
-This engine solves the CPU bottleneck in algorithmic trading research by leveraging extreme parallel compute power of NVIDIA hardware while maintaining accessibility through Python scripting. It implements:
+## The problem
 
-- **Core C++20 & CUDA Engine**: Processes millions of market events simultaneously
-- **Structure of Arrays (SoA) Layout**: Maximizes GPU memory bandwidth with CUDA Unified Memory
-- **Zero-Copy API Bridge**: Nanobind passes NumPy arrays directly without memory duplication
-- **N+1 Execution Lock**: Prevents look-ahead bias by enforcing temporal barriers
-- **Configurable Microstructure**: Models latency, bid-ask spread, and transaction fees
-- **Dual-Mode Build**: CPU fallback (`-DUSE_CUDA=OFF`) and GPU acceleration (`-DUSE_CUDA=ON`)
+Strategy research often involves repeatedly evaluating parameter choices over time-series market data. Python makes research accessible, but repeated computation can become a bottleneck as datasets and parameter sweeps grow. Backtests also need explicit execution assumptions: ignoring timing, spreads, fees, or information that would not yet have been available can make results misleading.
 
-## 📊 Features
+## The approach
 
-- **Massive Parallelism**: Test 10,000+ parameter combinations in milliseconds
-- **Institutional Execution**: N+1 lock prevents curve-fitting from look-ahead bias
-- **Realistic Market Mechanics**: Configurable slippage and commission (basis points)
-- **Zero-Copy Python Interface**: Direct NumPy array access via nanobind
-- **Cross-Platform**: Develop on macOS/Windows/Linux (CPU), deploy on Linux/Windows (GPU)
-- **Identical API**: Same Python interface for CPU fallback and GPU acceleration
+This engine provides a Python-facing workflow backed by a C++20 implementation, with a CUDA build option for NVIDIA GPUs. It evaluates parameter sweeps and models selected execution costs, while an **N+1 execution lock** is intended to enforce temporal barriers and help avoid look-ahead bias. A CPU fallback supports development on systems without CUDA.
 
-## 📁 Project Structure
+The engine produces research results and trading signals. It is not a live trading system and does not provide portfolio construction, risk management, order routing, or compliance controls.
+
+## Architecture
+
+- **C++20 core with optional CUDA kernels:** shared engine code can be built with CPU fallback (-DUSE_CUDA=OFF) or GPU acceleration (-DUSE_CUDA=ON).
+- **Python interface via nanobind:** exposes the engine to Python and NumPy-based research workflows. Input data is copied into unified memory by the engine; the Python-to-engine handoff is not zero-copy.
+- **Structure of Arrays (SoA):** market data is stored in separate arrays (timestamps, prices, and volumes) to support the engine's data-processing layout.
+- **N+1 execution lock:** applies temporal barriers during execution to reduce look-ahead bias.
+- **Microstructure settings:** supports configurable latency, bid-ask spread/slippage, and transaction fees/commission.
+- **Shared Python API:** CPU and GPU builds are designed to expose the same interface. GPU builds target Linux or Windows systems with NVIDIA CUDA; CPU development is documented for macOS, Linux, and Windows.
+
+## Features
+
+- Parameter sweeps over fast/slow window ranges; invalid fast >= slow combinations are excluded.
+- Backtest result fields include total P&L, Sharpe ratio, maximum drawdown, trade count, and win rate.
+- Configurable slippage and commission in basis points.
+- CPU fallback for development and testing without CUDA.
+- CUDA build path for GPU deployment.
+- Python test suite covering basic execution and edge cases.
+
+## Current status
+
+The repository documents a successful CPU fallback build and test run on macOS Apple Silicon using -DUSE_CUDA=OFF. The test run exercises module import, engine construction, a parameter sweep, and basic edge cases.
+
+The repository also contains CUDA build and GPU testing instructions. Its own testing notes list GPU build verification, CPU/GPU numerical equivalence, performance benchmarks, and memory checks as next steps. The published test output includes an extremely large drawdown result for one case, so these checks should not be treated as validation of financial correctness. GPU performance and numerical equivalence have not been established in the repository.
+
+## Roadmap
+
+1. Build and run the CUDA configuration on supported NVIDIA hardware.
+2. Compare CPU and GPU outputs within defined floating-point tolerances, including edge cases.
+3. Investigate and test numerical behavior in drawdown and other reported statistics.
+4. Publish reproducible CPU/GPU benchmark methodology and measured results across documented data sizes and hardware.
+5. Expand validation around execution timing, costs, and parameter-sweep behavior.
+6. Improve developer setup and package the Python interface for a repeatable research workflow.
+
+## Potential Claude/API integration
+
+There is no Claude integration in the engine today. If added, Claude or another language-model API could support optional research and developer workflows such as:
+
+- Turning a natural-language research question into a draft parameter-sweep configuration for a user to review.
+- Summarizing and comparing result tables produced by a run.
+- Explaining configuration choices, engine outputs, and test failures.
+- Helping developers draft strategy experiments or documentation.
+
+Any such integration would need to keep the engine's inputs and outputs explicit and verifiable. It would not replace backtest validation or provide live trading, investment, or risk decisions.
+
+## Project structure
 
 ```
 gpu_engine/
-├── include/                # Header files
-│   ├── engine.cuh          # FastQuantEngine interface
-│   └── market_data.cuh     # TickDataSoA structure
-├── src/                    # Source files
-│   ├── engine.cpp          # Host implementation & CPU fallback
-│   ├── bindings.cpp        # Nanobind Python bindings
-│   └── kernels.cu          # CUDA kernels (when USE_CUDA=ON)
-├── tests/                  # Python test suite
-│   └── test_engine.py      # Validation tests
-├── docs/                   # Platform-specific guides
-│   ├── LINUX_GPU_TESTING.md
-│   ├── GPU_TESTING_GUIDE.md
-│   └── WINDOWS_GPU_TESTING.md
-├── notebooks/              # Jupyter notebooks for demonstration
+├── include/                # Engine and market-data headers
+├── src/                    # Host implementation, bindings, and CUDA kernels
+├── tests/                  # Python validation tests
+├── docs/                   # Platform-specific build and GPU testing guides
+├── notebooks/              # Demonstration notebooks
 ├── scripts/                # Build and deployment scripts
 ├── BUILD_VERIFICATION.md   # CPU fallback verification on macOS
-├── GPU_TESTING_SUMMARY.md  # Overview and next steps
-├── NEXT_STEPS.md           # Quick start for Linux GPU testing
-├── CMakeLists.txt          # Build configuration
-└── README.md               # This file
+├── GPU_TESTING_SUMMARY.md  # GPU testing status and next steps
+├── NEXT_STEPS.md           # Linux GPU testing preparation
+└── CMakeLists.txt          # Build configuration
 ```
 
-## ⚙️ Installation & Usage
+## Build and run
 
-### Prerequisites
-- C++20-compatible compiler (AppleClang, GCC 7+, or Clang 6+)
+### Requirements
+
+- C++20-compatible compiler
 - CMake 3.18+
-- Python 3.7+
-- NumPy
-- NVIDIA CUDA Toolkit 11.0+ (for GPU acceleration only)
+- Python 3.7+ and NumPy
+- NVIDIA CUDA Toolkit 11.0+ for GPU builds
 
-### CPU Fallback Development (macOS/Linux/Windows)
-*Recommended for initial development and testing*
+### CPU fallback
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd gpu_engine
+git clone https://github.com/amanrane28coder/Mochatrade-YC-P26-Mumbai-Hack.git
+cd Mochatrade-YC-P26-Mumbai-Hack
+cmake -S . -B build -DUSE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
 
-# Build CPU fallback version
-rm -rf build && mkdir build && cd build
-cmake .. -DUSE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)  # or -j$(sysctl -n hw.ncpu) on macOS
+Install or copy the built Python extension as appropriate for your platform, then run the repository's test script:
 
-# Install Python module
-cp build/gpu_engine.so .  # Linux/macOS
-# On Windows: copy build\gpu_engine.pyd . 
-
-# Run tests
+```bash
 python3 tests/test_engine.py
 ```
 
-### GPU Acceleration Deployment (Linux/Windows with NVIDIA GPU)
-*For production deployment and maximum performance*
+### NVIDIA GPU build
+
+On a supported Linux or Windows environment with the CUDA toolkit installed:
 
 ```bash
-# Build GPU version
-mkdir -p build_gpu && cd build_gpu
-cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-
-# Install Python module
-cp build/gpu_engine.so .  # Linux/macOS (.so)
-# On Windows: copy build\gpu_engine.pyd .  (.pyd)
-
-# Run tests (should match CPU results)
-python3 tests/test_engine.py
+cmake -S . -B build_gpu -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build_gpu --parallel
 ```
 
-## 📖 Documentation
+See [GPU testing guides](docs/GPU_TESTING_GUIDE.md) and [Linux GPU testing instructions](docs/LINUX_GPU_TESTING.md) for platform-specific steps. The GPU build path is documented, but GPU validation is still an open roadmap item.
 
-- **[BUILD_VERIFICATION.md](BUILD_VERIFICATION.md)** - CPU fallback verification on macOS Apple Silicon
-- **[GPU_TESTING_SUMMARY.md](GPU_TESTING_SUMMARY.md)** - Overview and preparation for GPU testing
-- **[NEXT_STEPS.md](NEXT_STEPS.md)** - Quick start guide for Linux GPU testing
-- **[docs/LINUX_GPU_TESTING.md](docs/LINUX_GPU_TESTING.md)** - Comprehensive Linux GPU testing instructions
-- **[docs/GPU_TESTING_GUIDE.md](docs/GPU_TESTING_GUIDE.md)** - Concise GPU testing reference
-- **[docs/WINDOWS_GPU_TESTING.md](docs/WINDOWS_GPU_TESTING.md)** - Complete Windows GPU testing guide
-- **[tests/test_engine.py](tests/test_engine.py)** - Python validation test suite
-
-## 🔧 Usage Example
+## Python usage
 
 ```python
 import numpy as np
 import gpu_engine as ge
 
-# Generate or load your market data
-# Format: timestamps (uint64_t), prices (double), volumes (double)
-timestamps = np.arange(10000, dtype=np.uint64) * 1000000000  # 1-second intervals
-prices = 100 * np.exp(np.cumsum(np.random.normal(0, 0.01, 10000)))
-volumes = np.random.uniform(100, 1000, 10000)
+timestamps = np.arange(10_000, dtype=np.uint64) * 1_000_000_000
+prices = 100 * np.exp(np.cumsum(np.random.normal(0, 0.01, 10_000)))
+volumes = np.random.uniform(100, 1_000, 10_000)
 
-# Create engine — pass NumPy arrays directly (data is copied into unified memory
-# for CPU↔GPU zero-copy transfer; the Python→engine handoff involves a memcpy)
 engine = ge.FastQuantEngine(timestamps, prices, volumes)
-
-# Run parameter sweep (only valid fast < slow combinations are evaluated)
 results = engine.run_parameter_sweep(
-    fast_window_range=(5, 50),    # Test fast MA windows 5-50
-    slow_window_range=(10, 100),  # Test slow MA windows 10-100
-    slippage_bps=1.5,             # 0.015% slippage per trade
-    commission_bps=0.5            # 0.005% commission per trade
+    fast_window_range=(5, 50),
+    slow_window_range=(10, 100),
+    slippage_bps=1.5,
+    commission_bps=0.5,
 )
-
-# Access results
-for i, result in enumerate(results):
-    print(f"Combo {i}: P&L={result.total_pnl:.2f}, "
-          f"Sharpe={result.sharpe_ratio:.2f}, "
-          f"DD={result.max_drawdown:.2f}%, "
-          f"Trades={result.total_trades}, Win%={result.win_rate:.1f}")
 ```
 
-## 🎯 Performance Expectations
+The engine's current example reports result fields such as P&L, Sharpe ratio, drawdown, trades, and win rate. Treat these as research outputs that require independent validation.
 
-| Data Points | CPU Time (approx) | GPU Time (approx) | Speedup |
-|-------------|-------------------|-------------------|---------|
-| 1K          | 50-100 ms         | 5-10 ms           | 5-10x   |
-| 10K         | 500-1000 ms       | 10-20 ms          | 25-50x  |
-| 100K        | 5-10 seconds      | 50-100 ms         | 50-100x |
-| 1M          | 50-100 seconds    | 200-500 ms        | 100-200x|
+## Performance expectations — unvalidated estimates
 
-*Actual performance depends on GPU model, data size, and parameter combinations.*
+The figures below are estimates retained from the project notes, not benchmark results. The repository does not provide measured runs, hardware details, or a reproducible benchmark result supporting these numbers. Actual performance has not yet been established and will depend on hardware, workload, data transfer, and parameter combinations.
 
-## 🔄 Development Workflow
+| Data points | CPU time (estimate) | GPU time (estimate) | Speedup (estimate) |
+|-------------:|--------------------:|--------------------:|-------------------:|
+| 1K           | 50–100 ms           | 5–10 ms             | 5–10×              |
+| 10K          | 500–1,000 ms        | 10–20 ms            | 25–50×             |
+| 100K         | 5–10 s              | 50–100 ms           | 50–100×            |
+| 1M           | 50–100 s            | 200–500 ms           | 100–200×            |
 
-1. **Develop/Test**: Use CPU fallback (`-DUSE_CUDA=OFF`) on any system (macOS/Windows/Linux)
-2. **Validate**: Ensure results are correct and strategies are sound
-3. **Deploy**: Switch to GPU acceleration (`-DUSE_CUDA=ON`) on Linux/NVIDIA or Windows/NVIDIA
-4. **Scale**: Process larger datasets and more parameter combinations with minimal code changes
+## Scope and limitations
 
-## ⚠️ Important Notes
+- The engine generates backtest results and trading signals only. Risk management, portfolio construction, live order execution, and compliance are outside the current scope.
+- Backtests do not establish live-trading performance. Results depend on data quality and assumptions about timing, costs, liquidity, and market impact.
+- CPU/GPU numerical equivalence is a validation goal, not a result claimed here.
+- Performance estimates are unvalidated; use reproducible measurements before making performance decisions.
 
-- **This engine generates trading signals only** - you must add:
-  - Risk management (position limits, VAR, etc.)
-  - Order execution systems
-  - Portfolio construction
-  - Compliance checks
-- **Backtesting ≠ Live Trading**: Always account for latency, order book dynamics, and market impact
-- **Start with Paper Trading**: Validate with simulation before risking capital
-- **Numerical Equivalence**: CPU and GPU results should match within floating-point tolerance
+## Documentation
 
-## 📈 Performance Validation
+- [CPU fallback build verification](BUILD_VERIFICATION.md)
+- [GPU testing summary](GPU_TESTING_SUMMARY.md)
+- [Next steps for GPU testing](NEXT_STEPS.md)
+- [GPU testing guide](docs/GPU_TESTING_GUIDE.md)
+- [Linux GPU testing guide](docs/LINUX_GPU_TESTING.md)
+- [Windows GPU testing guide](docs/WINDOWS_GPU_TESTING.md)
+- [Python test suite](tests/test_engine.py)
 
-To compare CPU vs GPU performance on the same system:
+## Contributing
 
-```bash
-# Build CPU version
-mkdir build_cpu && cd build_cpu
-cmake .. -DUSE_CUDA=OFF
-make
-cp gpu_engine.so ../gpu_engine_cpu.so  # Linux/macOS
-# Windows: copy build\gpu_engine.pyd ..\gpu_engine_cpu.pyd
+Contributions to the engine, tests, and documentation are welcome. Please follow the existing C++ and Python style, update documentation when behavior changes, and run the relevant tests for your build configuration.
 
-# Build GPU version (requires NVIDIA GPU)
-cd ../build_gpu
-make
-cp gpu_engine.so ../gpu_engine_gpu.so  # Linux/macOS
-# Windows: copy build\gpu_engine.pyd ..\gpu_engine_gpu.pyd
+## License
 
-# Run benchmark comparison (see docs/GPU_TESTING_GUIDE.md)
-```
+**TODO:** Choose and add a project license before reuse or redistribution terms are stated.
 
-## 🤝 Contributing
-
-This project follows standard C++ and Python practices. Please ensure:
-- Code matches existing style and conventions
-- All tests pass before submitting changes
-- Documentation is updated for new features
-- Build system modifications are tested on all target platforms
-
-## 📄 License
-
-[Specify your license here - e.g., MIT, Apache 2.0, etc.]
-
-## 🙏 Acknowledgments
-
-- Nanobind team for excellent Python-C++ bindings
-- NVIDIA for CUDA parallel computing platform
-- Open-source quantitative finance community
-
-## 👥 Team Void
+## Team
 
 - Aman Rane
 - Harsh Gosavi
 - Yash Kushwaha
 - Anirudh Jatav
-
----
-
-**Ready for high-frequency strategy research and development.** Start with the CPU fallback on your current system, then scale to GPU acceleration when you need maximum performance.

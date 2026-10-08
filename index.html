@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131b">
+  <meta name="description" content="MochaTrade is an early-stage quantitative research engine combining a C++20 backtesting core, Python bindings, and an optional CUDA build path.">
+  <title>MochaTrade — Quantitative Research Engine</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10131b;
+      --panel: #171c27;
+      --panel-soft: #1c2230;
+      --text: #f4f2ed;
+      --muted: #a9b0bf;
+      --line: rgba(224, 232, 246, .13);
+      --mint: #9df2ce;
+      --mint-ink: #10261d;
+      --violet: #bba9ff;
+      --amber: #ffd493;
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 75% 0%, rgba(125, 103, 222, .15), transparent 36rem),
+        radial-gradient(ellipse at 0% 30%, rgba(72, 185, 142, .08), transparent 32rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    a:focus-visible { outline: 3px solid var(--mint); outline-offset: 4px; }
+    .wrap { width: min(var(--max), calc(100% - 44px)); margin-inline: auto; }
+    header { border-bottom: 1px solid var(--line); }
+    .nav { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; font-weight: 750; letter-spacing: -.03em; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid rgba(157, 242, 206, .55); border-radius: 9px; color: var(--mint); font-size: 15px; }
+    .nav-links { display: flex; align-items: center; gap: 26px; color: var(--muted); font-size: 13px; }
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { padding: 9px 14px; border: 1px solid var(--line); border-radius: 9px; color: var(--text) !important; }
+    .hero { padding: 100px 0 78px; display: grid; grid-template-columns: 1.08fr .92fr; align-items: center; gap: 56px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: var(--mint); text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 750; }
+    .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 15px currentColor; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin: 18px 0 20px; max-width: 690px; font-size: clamp(43px, 6vw, 68px); line-height: 1.04; letter-spacing: -.055em; }
+    h1 span { color: var(--mint); }
+    .lede { max-width: 610px; margin-bottom: 27px; color: #c5cad4; font-size: 17px; line-height: 1.7; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 0 17px; border-radius: 9px; text-decoration: none; font-size: 14px; font-weight: 700; transition: transform .18s ease, background .18s ease; }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background: var(--mint); color: var(--mint-ink); }
+    .button-secondary { border: 1px solid var(--line); background: rgba(255,255,255,.025); }
+    .hero-note { margin: 24px 0 0; max-width: 560px; color: var(--muted); font-size: 12px; }
+    .terminal { position: relative; overflow: hidden; border: 1px solid rgba(194, 207, 231, .17); border-radius: 18px; background: linear-gradient(145deg, rgba(31, 38, 53, .98), rgba(19, 23, 33, .98)); box-shadow: 0 30px 90px rgba(0,0,0,.28); }
+    .terminal-top { height: 49px; display: flex; align-items: center; gap: 7px; padding: 0 17px; border-bottom: 1px solid var(--line); color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #798293; }
+    .terminal-title { margin-left: 8px; }
+    .terminal-body { padding: 24px; font: 12px/1.9 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .code-muted { color: #7f8ba1; }
+    .code-key { color: var(--violet); }
+    .code-value { color: var(--mint); }
+    .code-warn { color: var(--amber); }
+    .chart { width: 100%; height: 132px; margin-top: 17px; }
+    .terminal-caption { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .status-banner { margin: 0 auto; padding: 15px 18px; display: flex; align-items: flex-start; gap: 13px; border: 1px solid rgba(255, 212, 147, .25); border-radius: 12px; background: rgba(255, 212, 147, .055); color: #ded4c3; font-size: 13px; }
+    .status-banner strong { color: var(--amber); }
+    .status-icon { flex: 0 0 auto; color: var(--amber); }
+    section { padding: 83px 0; border-top: 1px solid var(--line); }
+    .section-head { max-width: 690px; margin-bottom: 32px; }
+    .section-label { color: var(--mint); text-transform: uppercase; letter-spacing: .13em; font-size: 10px; font-weight: 750; }
+    h2 { margin: 10px 0 12px; font-size: clamp(30px, 4vw, 43px); line-height: 1.13; letter-spacing: -.04em; }
+    .section-intro { color: var(--muted); font-size: 15px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .card { min-height: 190px; padding: 23px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(160deg, rgba(255,255,255,.045), rgba(255,255,255,.012)); }
+    .card-icon { width: 33px; height: 33px; margin-bottom: 17px; display: grid; place-items: center; border-radius: 9px; background: rgba(157,242,206,.09); color: var(--mint); font: 700 13px ui-monospace, monospace; }
+    h3 { margin-bottom: 8px; font-size: 16px; letter-spacing: -.02em; }
+    .card p { margin-bottom: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .architecture { display: grid; grid-template-columns: .8fr 1.2fr; gap: 48px; align-items: start; }
+    .architecture-copy { color: var(--muted); font-size: 14px; }
+    .stack { display: grid; gap: 10px; }
+    .stack-row { display: grid; grid-template-columns: 128px 1fr; gap: 15px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.025); }
+    .stack-name { color: var(--mint); font: 12px ui-monospace, monospace; }
+    .stack-desc { color: #c3c9d5; font-size: 12px; }
+    .roadmap { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; counter-reset: step; }
+    .roadmap-item { min-height: 88px; padding: 17px 18px; display: flex; align-items: flex-start; gap: 14px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.025); color: #c7ccd6; font-size: 13px; }
+    .roadmap-item::before { counter-increment: step; content: "0" counter(step); color: var(--violet); font: 12px ui-monospace, monospace; }
+    .future { padding: 25px; border: 1px solid rgba(187,169,255,.22); border-radius: 14px; background: linear-gradient(115deg, rgba(187,169,255,.07), rgba(255,255,255,.018)); }
+    .future-tag { display: inline-flex; margin-bottom: 12px; padding: 4px 8px; border-radius: 5px; background: rgba(187,169,255,.12); color: var(--violet); text-transform: uppercase; letter-spacing: .1em; font-size: 9px; font-weight: 750; }
+    .future p { max-width: 810px; margin: 0; color: #c3c6d1; font-size: 13px; }
+    .disclaimer { margin-top: 18px; color: #929aaa; font-size: 11px; }
+    .final-cta { padding: 74px 0; border-top: 1px solid var(--line); text-align: center; }
+    .final-cta p { max-width: 540px; margin: 0 auto 23px; color: var(--muted); font-size: 14px; }
+    footer { padding: 22px 0 30px; border-top: 1px solid var(--line); color: #929aaa; font-size: 11px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+    .footer-inner a { color: #c9ced8; text-decoration: none; }
+    @media (max-width: 780px) {
+      .nav-links { gap: 14px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 37px; padding: 70px 0 55px; }
+      .terminal { max-width: 580px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .card { min-height: 0; }
+      .architecture { grid-template-columns: 1fr; gap: 21px; }
+      section { padding: 61px 0; }
+    }
+    @media (max-width: 520px) {
+      .wrap { width: min(var(--max), calc(100% - 32px)); }
+      .nav { min-height: 66px; }
+      .nav-links { gap: 0; }
+      .nav-cta { padding: 8px 10px; font-size: 11px; }
+      .hero { padding-top: 57px; }
+      .lede { font-size: 15px; }
+      .terminal-body { padding: 19px; }
+      .roadmap { grid-template-columns: 1fr; }
+      .stack-row { grid-template-columns: 1fr; gap: 5px; }
+      .footer-inner { flex-direction: column; gap: 5px; }
+      .status-banner { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="MochaTrade home">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        <span>MochaTrade</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#approach">Approach</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#roadmap">Roadmap</a>
+        <a class="nav-cta" href="https://github.com/amanrane28coder/Mochatrade-YC-P26-Mumbai-Hack">View on GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <div class="eyebrow">Quantitative research engine</div>
+        <h1>Explore strategy ideas.<br><span>Measure with care.</span></h1>
+        <p class="lede">A developer-focused backtesting engine that pairs a C++20 core with Python workflows and an optional CUDA build path for quantitative research on historical market data.</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://github.com/amanrane28coder/Mochatrade-YC-P26-Mumbai-Hack">Explore the repository <span aria-hidden="true">↗</span></a>
+          <a class="button button-secondary" href="#approach">See how it works <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="hero-note">Early-stage engineering project · CPU fallback verified on macOS Apple Silicon · GPU validation remains in progress</p>
+      </div>
+      <div class="terminal" aria-label="Illustrative code and research chart; not benchmark data">
+        <div class="terminal-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="terminal-title">research_run.py</span></div>
+        <div class="terminal-body">
+          <div><span class="code-key">engine</span> = <span class="code-value">FastQuantEngine</span>(market_data)</div>
+          <div><span class="code-key">results</span> = engine.<span class="code-value">run_parameter_sweep</span>(</div>
+          <div>&nbsp;&nbsp;fast_window_range=(<span class="code-value">5</span>, <span class="code-value">50</span>),</div>
+          <div>&nbsp;&nbsp;slow_window_range=(<span class="code-value">10</span>, <span class="code-value">100</span>),</div>
+          <div>&nbsp;&nbsp;slippage_bps=<span class="code-value">1.5</span>, commission_bps=<span class="code-value">0.5</span></div>
+          <div>)</div>
+          <svg class="chart" viewBox="0 0 480 130" role="img" aria-label="Decorative sample time-series line, not real performance data">
+            <defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9df2ce" stop-opacity=".23"/><stop offset="1" stop-color="#9df2ce" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 100 C30 96 38 88 60 92 S90 75 112 83 S146 87 164 65 S190 72 210 61 S240 72 259 53 S290 66 312 46 S342 56 365 38 S397 50 418 27 S452 38 480 16 L480 130 L0 130Z" fill="url(#area)"/>
+            <path d="M0 100 C30 96 38 88 60 92 S90 75 112 83 S146 87 164 65 S190 72 210 61 S240 72 259 53 S290 66 312 46 S342 56 365 38 S397 50 418 27 S452 38 480 16" fill="none" stroke="#9df2ce" stroke-width="2"/>
+            <path d="M0 112 H480 M0 76 H480 M0 40 H480" stroke="rgba(224,232,246,.12)" stroke-width="1" stroke-dasharray="3 6"/>
+          </svg>
+          <div class="terminal-caption"><span>Illustrative visualization</span><span class="code-warn">No measured run shown</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="status-banner">
+        <span class="status-icon" aria-hidden="true">◆</span>
+        <div><strong>Research software, not a live trading product.</strong> The repository documents a working CPU fallback. GPU builds, CPU/GPU equivalence, and performance figures still need hardware validation. Backtest results require independent review.</div>
+      </div>
+    </div>
+
+    <section id="approach">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-label">The research workflow</div>
+          <h2>From market data to comparable experiments.</h2>
+          <p class="section-intro">MochaTrade focuses on the compute layer of strategy research: prepare historical data, explore parameter ranges, and inspect results with execution assumptions made explicit.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">01</div>
+            <h3>Explore parameter ranges</h3>
+            <p>Run fast/slow window sweeps from a Python-facing interface. Invalid fast-at-or-above-slow combinations are excluded.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">02</div>
+            <h3>Model selected costs</h3>
+            <p>Configure latency, bid-ask spread or slippage, and transaction fees or commission when evaluating a strategy.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">03</div>
+            <h3>Inspect research outputs</h3>
+            <p>Review total P&amp;L, Sharpe ratio, maximum drawdown, trade count, and win rate. These are backtest statistics, not a promise of live performance.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="wrap architecture">
+        <div>
+          <div class="section-label">Under the hood</div>
+          <h2>Python for iteration.<br>C++ for the core.</h2>
+          <p class="architecture-copy">A shared engine interface supports CPU development and a separate CUDA-enabled build path. The project documents NumPy inputs through nanobind and a Structure of Arrays data layout. Input data is copied into unified memory; the Python-to-engine handoff is not zero-copy.</p>
+          <p class="architecture-copy">An N+1 execution lock is intended to enforce temporal barriers and help reduce look-ahead bias. CPU and GPU output equivalence remains a validation goal.</p>
+        </div>
+        <div class="stack" aria-label="Technology architecture">
+          <div class="stack-row"><div class="stack-name">C++20</div><div class="stack-desc">Backtesting core and CPU fallback</div></div>
+          <div class="stack-row"><div class="stack-name">CUDA</div><div class="stack-desc">Optional NVIDIA GPU build path; hardware validation is outstanding</div></div>
+          <div class="stack-row"><div class="stack-name">nanobind</div><div class="stack-desc">Python bindings for the engine interface</div></div>
+          <div class="stack-row"><div class="stack-name">SoA + N+1</div><div class="stack-desc">Separate market-data arrays and temporal execution barriers</div></div>
+          <div class="stack-row"><div class="stack-name">Microstructure</div><div class="stack-desc">Configurable latency, spread/slippage, and fees</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-label">Current status &amp; next work</div>
+          <h2>Built carefully. Validated in stages.</h2>
+          <p class="section-intro">The project records CPU fallback verification on macOS Apple Silicon. The following engineering work is still open.</p>
+        </div>
+        <div class="roadmap">
+          <div class="roadmap-item">Build and exercise the CUDA configuration on supported NVIDIA hardware.</div>
+          <div class="roadmap-item">Compare CPU and GPU outputs within documented floating-point tolerances.</div>
+          <div class="roadmap-item">Investigate reported drawdown behavior and expand numerical edge-case coverage.</div>
+          <div class="roadmap-item">Publish reproducible benchmarks with hardware, workloads, and measurements.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="future">
+      <div class="wrap">
+        <div class="future">
+          <span class="future-tag">Exploratory · not implemented</span>
+          <h3>Possible Claude/API workflows</h3>
+          <p>If a language-model integration is added, it could help draft a parameter-sweep configuration for review, summarize result tables, or explain configuration and test output. There is no Claude integration today, and any generated research suggestions would need independent validation. The engine does not make live trading or investment decisions.</p>
+        </div>
+        <p class="disclaimer">Backtesting has limitations. Results depend on data quality and assumptions about timing, costs, liquidity, and market impact. This project does not include live order execution, portfolio construction, risk management, or compliance controls.</p>
+      </div>
+    </section>
+
+    <div class="final-cta">
+      <div class="wrap">
+        <div class="section-label">Open engineering project</div>
+        <h2>Read the code. Follow the validation work.</h2>
+        <p>Browse the implementation, build notes, test suite, and GPU validation guides in the public repository.</p>
+        <a class="button button-primary" href="https://github.com/amanrane28coder/Mochatrade-YC-P26-Mumbai-Hack">Open the GitHub repository <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>© 2026 MochaTrade · Early-stage quantitative research engineering</span>
+      <a href="https://github.com/amanrane28coder/Mochatrade-YC-P26-Mumbai-Hack">Source and project documentation ↗</a>
+    </div>
+  </footer>
+</body>
+</html>

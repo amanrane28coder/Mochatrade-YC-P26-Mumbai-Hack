@@ -1,8 +1,8 @@
-# MochaTrade GPU-Accelerated Backtesting Engine
+# Void Quant — GPU-Accelerated Backtesting Engine
 
 A quantitative research and developer platform for exploring trading strategies across historical market data. The project combines a C++20 engine, optional CUDA acceleration, and Python bindings so researchers can work in Python while the engine handles backtest computation.
 
-> **Project stage:** Early-stage engineering project. The CPU fallback has been built and exercised on macOS Apple Silicon. GPU validation and performance benchmarking remain open work; estimates below are not measured results.
+> **Project stage:** Early-stage, unincorporated engineering project begun in September 2026. Development used Claude Code in the terminal with free Opus 5 access; this is development-tool use, not a Claude API integration. The CPU fallback has been built and exercised on macOS Apple Silicon. GPU validation and performance benchmarking remain open work; estimates below are not measured results.
 
 ## The problem
 
